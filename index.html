@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cricket Score Web App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      color: #fff;
+      text-align: center;
+      background: #0d0d0d;
+      overflow-x: hidden;
+    }
+
+    .container {
+      margin: auto;
+      margin-top: 30px;
+      width: 85%;
+      max-width: 1000px;
+      padding: 25px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    h1, h2, h3 {
+      margin: 10px 0;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ffcc00;
+    }
+
+    input, select, button {
+      margin: 8px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    input, select {
+      width: 60%;
+      max-width: 320px;
+      background: #1f1f1f;
+      color: #fff;
+    }
+
+    button {
+      background: linear-gradient(135deg, #ff9800, #ff5722);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #ffb733, #ff7043);
+      transform: scale(1.05);
+    }
+
+    .team-section {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .scoreboard {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.07);
+      text-align: center;
+    }
+
+    .highlight {
+      color: #ffeb3b;
+      font-weight: bold;
+    }
+
+    .log {
+      text-align: left;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .live-scoreboard {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: linear-gradient(90deg, #ff9800, #e65100);
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid #ffcc00;
+    }
+
+    .score-left, .score-right {
+      width: 30%;
+      text-align: center;
+    }
+
+    .score-center {
+      width: 40%;
+      text-align: center;
+      font-size: 20px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="live-scoreboard">
+    <div class="score-left">
+      <span id="battingTeamName">Team 1</span> 🏏
+      <span id="battingScore">0/0 (0.0)</span>
+    </div>
+    <div class="score-center">
+      <div><b>Striker:</b> <span id="currentBatsman">-</span></div>
+      <div><b>Bowler:</b> <span id="currentBowler">-</span></div>
+    </div>
+    <div class="score-right">
+      vs <span id="bowlingTeamName">Team 2</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>🏏 Modern Cricket Scorer</h1>
+
+    <h3>Select Match Format:</h3>
+    <select id="matchFormat">
+      <option value="T20">T20 (20 overs)</option>
+      <option value="ODI">ODI (50 overs)</option>
+      <option value="Test">Test Match (Unlimited overs)</option>
+      <option value="Custom">Custom Overs</option>
+    </select>
+    <div id="customOversDiv" style="display:none;">
+      <label>Enter Overs: </label>
+      <input type="number" id="customOvers" min="1" max="500" placeholder="e.g. 10">
+    </div>
+
+    <label>Team 1 Name:</label><br>
+    <input id="team1" placeholder="Team A"><br>
+    <label>Team 2 Name:</label><br>
+    <input id="team2" placeholder="Team B"><br>
+
+    <div class="team-section">
+      <h2>Team 1 Players</h2>
+      <div id="team1Players"></div>
+      <button onclick="addPlayer('team1Players')">+ Add Player</button>
+    </div>
+
+    <div class="team-section">
+      <h2>Team 2 Players</h2>
+      <div id="team2Players"></div>
+      <button onclick="addPlayer('team2Players')">+ Add Player</button>
+    </div>
+
+    <button onclick="startMatch()">✅ Start Match</button>
+    
+    <div id="scoreEntry" style="display:none;" class="scoreboard">
+      <h2>Ball by Ball Scoring</h2>
+      <p><span class="highlight" id="battingTeam"></span> is batting</p>
+      <label>Runs: </label>
+      <select id="runs">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="6">6</option>
+      </select>
+      <label>Wicket?</label>
+      <input type="checkbox" id="isWicket">
+      <button onclick="enterBall()">Add Ball</button>
+
+      <div id="nextBatsmanDiv" style="display:none;">
+        <h3>⚠ Select Next Batsman</h3>
+        <select id="nextBatsman"></select>
+        <button onclick="chooseBatsman()">Confirm</button>
+      </div>
+
+      <div id="nextBowlerDiv" style="display:none;">
+        <h3>🎯 Select Next Bowler</h3>
+        <select id="nextBowler"></select>
+        <button onclick="chooseBowler()">Confirm</button>
+      </div>
+
+      <div style="margin-top:15px; display:none;" id="endInningsDiv">
+        <button onclick="endInnings()">🏁 End Innings</button>
+      </div>
+
+      <div class="log" id="matchResult"></div>
+    </div>
+  </div>
+
+  <script>
+    let team1Score = 0, team1Wickets = 0, balls = 0, totalOvers = 20;
+    let battingTeam = "Team 1";
+    let striker = "", bowler = "";
+
+    document.getElementById("matchFormat").addEventListener("change", function() {
+      if (this.value === "Custom") {
+        document.getElementById("customOversDiv").style.display = "block";
+        document.getElementById("endInningsDiv").style.display = "none";
+      } else {
+        document.getElementById("customOversDiv").style.display = "none";
+        if (this.value === "T20") totalOvers = 20;
+        if (this.value === "ODI") totalOvers = 50;
+        if (this.value === "Test") {
+          totalOvers = Infinity;
+          document.getElementById("endInningsDiv").style.display = "block";
+        } else {
+          document.getElementById("endInningsDiv").style.display = "none";
+        }
+      }
+    });
+
+    function addPlayer(teamDivId) {
+      const container = document.getElementById(teamDivId);
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <input type="text" placeholder="Player Name">
+        <select>
+          <option value="Batsman">Batsman</option>
+          <option value="Bowler">Bowler</option>
+          <option value="All-Rounder">All-Rounder</option>
+          <option value="Captain">Captain</option>
+          <option value="Wicket Keeper">Wicket Keeper</option>
+        </select>
+      `;
+      container.appendChild(div);
+    }
+
+    function startMatch() {
+      if (!validateWicketKeeper("team1Players") || !validateWicketKeeper("team2Players")) {
+        alert("⚠ Each team must have at least one Wicket Keeper!");
+        return;
+      }
+      if (document.getElementById("matchFormat").value === "Custom") {
+        totalOvers = parseInt(document.getElementById("customOvers").value) || 10;
+      }
+      battingTeam = document.getElementById("team1").value || "Team 1";
+      document.getElementById("scoreEntry").style.display = "block";
+      document.getElementById("battingTeam").textContent = battingTeam;
+      document.getElementById("battingTeamName").textContent = battingTeam;
+      document.getElementById("bowlingTeamName").textContent = document.getElementById("team2").value || "Team 2";
+    }
+
+    function validateWicketKeeper(teamDivId) {
+      const div = document.getElementById(teamDivId);
+      const roles = div.getElementsByTagName("select");
+      for (let sel of roles) {
+        if (sel.value === "Wicket Keeper") return true;
+      }
+      return false;
+    }
+
+    function enterBall() {
+      let runs = parseInt(document.getElementById("runs").value);
+      let isWicket = document.getElementById("isWicket").checked;
+
+      team1Score += runs;
+      balls++;
+      if (isWicket) {
+        team1Wickets++;
+        document.getElementById("nextBatsmanDiv").style.display = "block";
+        loadPlayerOptions("team1Players", "nextBatsman");
+      }
+
+      if (balls % 6 === 0) {
+        document.getElementById("nextBowlerDiv").style.display = "block";
+        loadPlayerOptions("team2Players", "nextBowler");
+      }
+
+      let oversBowled = Math.floor(balls/6);
+      let ballsBowled = balls % 6;
+
+      document.getElementById("matchResult").innerHTML += 
+        `Ball ${balls}: ${runs} run(s) ${isWicket ? "| WICKET!" : ""} → Total: ${team1Score}/${team1Wickets}<br>`;
+
+      document.getElementById("battingScore").textContent = 
+        `${team1Score}/${team1Wickets} (${oversBowled}.${ballsBowled})`;
+
+      if (oversBowled >= totalOvers && totalOvers !== Infinity) {
+        alert(`Innings over! Final Score: ${team1Score}/${team1Wickets} in ${totalOvers} overs.`);
+      }
+
+      document.getElementById("isWicket").checked = false;
+    }
+
+    function loadPlayerOptions(teamDivId, selectId) {
+      let container = document.getElementById(teamDivId);
+      let inputs = container.getElementsByTagName("input");
+      let select = document.getElementById(selectId);
+      select.innerHTML = "";
+      for (let i = 0; i < inputs.length; i++) {
+        let playerName = inputs[i].value;
+        if (playerName) {
+          let opt = document.createElement("option");
+          opt.value = playerName;
+          opt.textContent = playerName;
+          select.appendChild(opt);
+        }
+      }
+    }
+
+    function chooseBatsman() {
+      striker = document.getElementById("nextBatsman").value;
+      document.getElementById("currentBatsman").textContent = striker;
+      document.getElementById("matchResult").innerHTML += `<b>New Batsman: ${striker}</b><br>`;
+      document.getElementById("nextBatsmanDiv").style.display = "none";
+    }
+
+    function chooseBowler() {
+      bowler = document.getElementById("nextBowler").value;
+      document.getElementById("currentBowler").textContent = bowler;
+      document.getElementById("matchResult").innerHTML += `<b>New Bowler: ${bowler}</b><br>`;
+      document.getElementById("nextBowlerDiv").style.display = "none";
+    }
+
+    function endInnings() {
+      alert(`Innings ended manually! Final Score: ${team1Score}/${team1Wickets} in ${Math.floor(balls/6)}.${balls%6} overs.`);
+      document.getElementById("scoreEntry").style.display = "none";
+    }
+  </script>
+</body>
+</html>
